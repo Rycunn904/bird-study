@@ -590,14 +590,20 @@ function updateDeleteDropdown() {
         birdDeleteSelect.remove(1);
     }
     
-    // Get custom birds from localStorage only (not bird file birds)
+    // Get all birds from localStorage (custom birds)
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
     
-    // Add each custom bird to the dropdown
-    birds.forEach((bird, index) => {
+    // Get bird names from bird file data
+    const fileBirdNames = birdFileData && birdFileData.birds ? birdFileData.birds.map(b => b.name) : [];
+    
+    // Combine all birds (custom + file), removing duplicates
+    const allBirdNames = [...new Set([...customBirds.map(b => b.name), ...fileBirdNames])];
+    
+    // Add each bird to the dropdown
+    allBirdNames.forEach((name, index) => {
         const option = document.createElement('option');
-        option.value = index;
-        option.textContent = bird.name;
+        option.value = name;
+        option.textContent = name;
         birdDeleteSelect.appendChild(option);
     });
 }
