@@ -567,7 +567,6 @@ async function importBirdFile(file) {
         };
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsText(file);
-        updateDeleteDropdown();
     });
 }
 
@@ -595,7 +594,7 @@ function updateDeleteDropdown() {
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
     
     // Add each custom bird to the dropdown
-    customBirds.forEach((bird, index) => {
+    birds.forEach((bird, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = bird.name;
