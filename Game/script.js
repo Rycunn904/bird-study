@@ -618,7 +618,7 @@ function deleteBird() {
     }
     
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
-    const birdToDelete = customBirds[selectedIndex].name;
+    const birdToDelete = customBirds[selectedIndex]["name"];
     
     if (confirm(`Are you sure you want to delete "${birdToDelete}"? This cannot be undone.`)) {
         // Remove the bird
