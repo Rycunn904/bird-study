@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Study Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Bird Study Website</h1>
+    
+    <div id="mode-selection">
+        <h2>Select Mode:</h2>
+        <label><input type="radio" name="app-mode" value="study" checked> Study</label>
+        <label><input type="radio" name="app-mode" value="quiz"> Quiz</label>
+    </div>
+    
+    <div id="study-mode-selection" style="display:block;">
+        <h2>Select Mode Type:</h2>
+        <label><input type="radio" name="mode" value="sound" checked> Sound Only</label>
+        <label><input type="radio" name="mode" value="both"> Sound and Image</label>
+        <label><input type="radio" name="mode" value="image"> Image Only</label>
+    </div>
+    
+    <div id="bird-display">
+        <h2 id="bird-name">Bird Name</h2>
+        <div id="image-wrapper">
+            <img id="bird-image" src="" alt="Bird Image" style="display:none;">
+            <div id="image-message" class="asset-message"></div>
+        </div>
+        <div id="audio-wrapper">
+            <audio id="bird-audio" controls style="display:none;"></audio>
+            <div id="audio-message" class="asset-message"></div>
+        </div>
+        <div id="controls">
+            <button id="prev-btn">Previous</button>
+            <button id="next-btn">Next</button>
+        </div>
+        <div id="quiz-start" style="display:none; margin-top:20px;">
+            <button id="start-quiz">Start Quiz</button>
+            <div id="start-instruction">Click start to begin the quiz.</div>
+        </div>
+        <div id="quiz-section" style="display:none; margin-top:20px;">
+            <input type="text" id="bird-guess" placeholder="Type the bird name">
+            <button id="submit-guess">Submit</button>
+            <div id="feedback"></div>
+        </div>
+    </div>
+    
+    <div id="upload-section">
+        <h2>Upload New Bird</h2>
+        <form id="upload-form">
+            <label for="bird-name-input">Bird Name:</label>
+            <input type="text" id="bird-name-input" required>
+            <br>
+            <label for="bird-image-input">Image:</label>
+            <input type="file" id="bird-image-input" accept="image/*" required>
+            <br>
+            <label for="bird-sound-input">Sound:</label>
+            <input type="file" id="bird-sound-input" accept="audio/*" required>
+            <button type="submit">Add Bird</button>
+        </form>
+    </div>
+
+    <!-- Link to License in bottom corner -->
+    <div>
+        <a href="../LICENSE.txt" target="_blank" id="license">View License</a>
+        <a href="mailto:itshim.ex@gmail.com?subject=Feedback%20about%20Bird%20Study%20Game" id="contact">Contact Me</a>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

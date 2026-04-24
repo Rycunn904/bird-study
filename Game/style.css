@@ -1,0 +1,84 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+#mode-selection {
+    margin-bottom: 20px;
+}
+
+#mode-selection label {
+    margin-right: 20px;
+}
+
+#bird-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#bird-image {
+    max-width: 400px;
+    max-height: 400px;
+}
+
+#image-wrapper,
+#audio-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.asset-message {
+    margin-top: 10px;
+    color: #555;
+    min-height: 1.2em;
+    font-style: italic;
+}
+
+#controls {
+    margin-top: 10px;
+}
+
+button {
+    margin: 0 10px;
+    padding: 10px 20px;
+}
+
+#quiz-section {
+    margin-top: 20px;
+}
+
+#bird-guess {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#feedback {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#license {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 14px;
+    color: #555;
+    text-decoration: none;
+}
+
+#contact {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-size: 14px;
+    color: #555;
+    text-decoration: none;
+}
