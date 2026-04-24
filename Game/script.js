@@ -22,6 +22,7 @@ function setBirdFileData(data) {
         });
     }
     updateDisplay();
+    updateDeleteDropdown();
 }
 
 let currentIndex = 0;
@@ -461,6 +462,7 @@ addBirdBtn.addEventListener('click', async () => {
     birds.push(name);
     currentIndex = birds.length - 1;
     updateDisplay();
+    updateDeleteDropdown();
     
     // Reset form
     document.getElementById('bird-name-input').value = '';
@@ -480,6 +482,7 @@ function fileToDataURL(file) {
 function clearCustomBirds() {
     if (confirm('Are you sure you want to clear all custom birds? This cannot be undone.')) {
         localStorage.removeItem('customBirds');
+        updateDeleteDropdown();
         updateDisplay();
     }
 }
@@ -555,6 +558,7 @@ async function importBirdFile(file) {
                 
                 // Set the bird file data
                 setBirdFileData(data);
+                updateDeleteDropdown();
                 
                 resolve(data);
             } catch (err) {
@@ -574,6 +578,75 @@ const birdFileInput = document.getElementById('bird-file-input');
 const loadBirdFileBtn = document.getElementById('load-bird-file');
 const downloadBirdFileBtn = document.getElementById('download-bird-file');
 const fileLoadMessage = document.getElementById('file-load-message');
+
+// Delete bird elements
+const birdDeleteSelect = document.getElementById('bird-delete-select');
+const deleteBirdBtn = document.getElementById('delete-bird-btn');
+const deleteMessage = document.getElementById('delete-message');
+
+function updateDeleteDropdown() {
+    // Clear existing options except the first
+    while (birdDeleteSelect.options.length > 1) {
+        birdDeleteSelect.remove(1);
+    }
+    
+    // Get custom birds from localStorage only (not bird file birds)
+    const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
+    
+    // Add each custom bird to the dropdown
+    customBirds.forEach((bird, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = bird.name;
+        birdDeleteSelect.appendChild(option);
+    });
+}
+
+function deleteBird() {
+    const selectedIndex = birdDeleteSelect.value;
+    
+    if (selectedIndex === '') {
+        deleteMessage.textContent = 'Please select a bird to delete';
+        deleteMessage.style.color = 'orange';
+        return;
+    }
+    
+    const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
+    const birdToDelete = customBirds[selectedIndex].name;
+    
+    if (confirm(`Are you sure you want to delete "${birdToDelete}"? This cannot be undone.`)) {
+        // Remove the bird
+        customBirds.splice(selectedIndex, 1);
+        localStorage.setItem('customBirds', JSON.stringify(customBirds));
+        
+        // Remove from birds array
+        const birdIndex = birds.indexOf(birdToDelete);
+        if (birdIndex > -1) {
+            birds.splice(birdIndex, 1);
+        }
+        
+        // Adjust current index if needed
+        if (currentIndex >= birds.length) {
+            currentIndex = Math.max(0, birds.length - 1);
+        }
+        
+        updateDeleteDropdown();
+        updateDisplay();
+        
+        deleteMessage.textContent = `"${birdToDelete}" has been deleted`;
+        deleteMessage.style.color = 'green';
+        
+        // Clear message after 3 seconds
+        setTimeout(() => {
+            deleteMessage.textContent = '';
+        }, 3000);
+    }
+}
+
+deleteBirdBtn.addEventListener('click', deleteBird);
+
+// Initialize delete dropdown
+updateDeleteDropdown();
 
 loadBirdFileBtn.addEventListener('click', async () => {
     const file = birdFileInput.files[0];

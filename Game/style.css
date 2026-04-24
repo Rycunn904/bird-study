@@ -115,3 +115,37 @@ button {
     min-height: 1.2em;
     font-style: italic;
 }
+
+#delete-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+#delete-section h2 {
+    margin-top: 0;
+}
+
+#delete-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#delete-form label {
+    font-weight: bold;
+}
+
+#bird-delete-select {
+    padding: 5px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+#delete-message {
+    margin-top: 10px;
+    min-height: 1.2em;
+    font-style: italic;
+}
