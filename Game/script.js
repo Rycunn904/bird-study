@@ -17,7 +17,7 @@ function setBirdFileData(data) {
     if (data && data.birds) {
         data.birds.forEach(bird => {
             if (!birds.includes(bird.name)) {
-                birds.push(bird.name);
+                customBirds.push(bird.name);
             }
         });
     }
