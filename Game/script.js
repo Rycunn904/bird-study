@@ -1,33 +1,28 @@
-const birds = [
-    "American Robin",
-    "Bald Eagle",
-    "Barn Owl",
-    "Barred Owl",
-    "Black Capped Chickadee",
-    "Black Vulture",
-    "Blue Jay",
-    "Bluebird",
-    "Bobwhite Quail",
-    "Carolina Wren",
-    "Catbird",
-    "Crow",
-    "Downy Woodpecker",
-    "Female Northern Cardinal",
-    "Female Wild Turkey",
-    "Goldfinch",
-    "Great Horned Owl",
-    "Male Northern Cardinal",
-    "Male Wild Turkey",
-    "Mockingbird",
-    "Mourning Dove",
-    "Northern Bob White",
-    "Pileated Woodpecker",
-    "Purple Martin",
-    "Red Bellied Woodpecker",
-    "Red Headed Woodpecker",
-    "Ruffed Grouse",
-    "Turkey Vulture"
-];
+const birds = [];
+
+// Bird file format: JSON with base64 encoded images and sounds
+// { version: 1, birds: [{ name, image, sound }, ...] }
+const BIRD_FILE_VERSION = 1;
+
+// In-memory bird file data
+let birdFileData = null;
+
+function getBirdFileData() {
+    return birdFileData;
+}
+
+function setBirdFileData(data) {
+    birdFileData = data;
+    // Add birds from file to the birds array
+    if (data && data.birds) {
+        data.birds.forEach(bird => {
+            if (!birds.includes(bird.name)) {
+                birds.push(bird.name);
+            }
+        });
+    }
+    updateDisplay();
+}
 
 let currentIndex = 0;
 let currentMode = 'sound';
@@ -61,6 +56,7 @@ const startQuizBtn = document.getElementById('start-quiz');
 const birdGuessInput = document.getElementById('bird-guess');
 const feedbackEl = document.getElementById('feedback');
 const uploadForm = document.getElementById('upload-form');
+const addBirdBtn = document.getElementById('add-bird-btn');
 let quizStarted = false;
 
 // Load birds from localStorage if any
@@ -104,15 +100,23 @@ const availabilityCache = {
 };
 
 function getAssetPaths(bird) {
+    // Check custom birds in localStorage first
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
     const customBird = customBirds.find(b => b.name === bird);
     if (customBird) {
         return { image: customBird.image, sound: customBird.sound };
     }
-    return {
-        image: `Birds/${bird}/Image.png`,
-        sound: `Birds/${bird}/Sound.mp3`
-    };
+    
+    // Check bird file data
+    if (birdFileData && birdFileData.birds) {
+        const fileBird = birdFileData.birds.find(b => b.name === bird);
+        if (fileBird) {
+            return { image: fileBird.image, sound: fileBird.sound };
+        }
+    }
+    
+    // No fallback - birds must come from bird file or custom upload
+    return { image: '', sound: '' };
 }
 
 function checkImageAvailable(bird) {
@@ -120,6 +124,11 @@ function checkImageAvailable(bird) {
         return Promise.resolve(availabilityCache.image[bird]);
     }
     const { image } = getAssetPaths(bird);
+    // No image path means bird data not available
+    if (!image) {
+        availabilityCache.image[bird] = false;
+        return Promise.resolve(false);
+    }
     if (image.startsWith('data:')) {
         availabilityCache.image[bird] = true;
         return Promise.resolve(true);
@@ -143,6 +152,11 @@ function checkSoundAvailable(bird) {
         return Promise.resolve(availabilityCache.sound[bird]);
     }
     const { sound } = getAssetPaths(bird);
+    // No sound path means bird data not available
+    if (!sound) {
+        availabilityCache.sound[bird] = false;
+        return Promise.resolve(false);
+    }
     if (sound.startsWith('data:')) {
         availabilityCache.sound[bird] = true;
         return Promise.resolve(true);
@@ -185,6 +199,17 @@ function isCorrectGuess(guess, correct) {
 }
 
 function updateDisplay() {
+    // Show message if no birds available
+    if (birds.length === 0) {
+        birdNameEl.textContent = 'No birds loaded';
+        birdImageEl.style.display = 'none';
+        birdAudioEl.style.display = 'none';
+        imageMessageEl.textContent = 'Upload a bird file or add birds to get started';
+        audioMessageEl.textContent = '';
+        controlsEl.style.display = 'none';
+        return;
+    }
+    
     const bird = birds[currentIndex];
     birdNameEl.textContent = bird;
     
@@ -200,12 +225,22 @@ function updateDisplay() {
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
     const customBird = customBirds.find(b => b.name === bird);
     
+    let hasImage = false;
+    let hasSound = false;
+    
     if (customBird) {
-        birdImageEl.src = customBird.image;
-        birdAudioEl.src = customBird.sound;
-    } else {
-        birdImageEl.src = `Birds/${bird}/Image.png`;
-        birdAudioEl.src = `Birds/${bird}/Sound.mp3`;
+        hasImage = !!customBird.image;
+        hasSound = !!customBird.sound;
+        birdImageEl.src = customBird.image || '';
+        birdAudioEl.src = customBird.sound || '';
+    } else if (birdFileData && birdFileData.birds) {
+        const fileBird = birdFileData.birds.find(b => b.name === bird);
+        if (fileBird) {
+            hasImage = !!fileBird.image;
+            hasSound = !!fileBird.sound;
+            birdImageEl.src = fileBird.image || '';
+            birdAudioEl.src = fileBird.sound || '';
+        }
     }
     
     if (appMode === 'study') {
@@ -215,13 +250,39 @@ function updateDisplay() {
         quizSection.style.display = 'none';
         if (currentMode === 'sound') {
             birdImageEl.style.display = 'none';
-            birdAudioEl.style.display = 'block';
+            imageMessageEl.textContent = '';
+            if (hasSound) {
+                birdAudioEl.style.display = 'block';
+                audioMessageEl.textContent = '';
+            } else {
+                birdAudioEl.style.display = 'none';
+                audioMessageEl.textContent = 'No sound available for this bird';
+            }
         } else if (currentMode === 'image') {
-            birdImageEl.style.display = 'block';
+            if (hasImage) {
+                birdImageEl.style.display = 'block';
+                imageMessageEl.textContent = '';
+            } else {
+                birdImageEl.style.display = 'none';
+                imageMessageEl.textContent = 'No image available for this bird';
+            }
             birdAudioEl.style.display = 'none';
+            audioMessageEl.textContent = '';
         } else {
-            birdImageEl.style.display = 'block';
-            birdAudioEl.style.display = 'block';
+            if (hasImage) {
+                birdImageEl.style.display = 'block';
+                imageMessageEl.textContent = '';
+            } else {
+                birdImageEl.style.display = 'none';
+                imageMessageEl.textContent = 'No image available for this bird';
+            }
+            if (hasSound) {
+                birdAudioEl.style.display = 'block';
+                audioMessageEl.textContent = '';
+            } else {
+                birdAudioEl.style.display = 'none';
+                audioMessageEl.textContent = 'No sound available for this bird';
+            }
         }
     } else {
         birdNameEl.style.display = 'none';
@@ -239,13 +300,39 @@ function updateDisplay() {
             birdGuessInput.value = '';
             if (currentMode === 'sound') {
                 birdImageEl.style.display = 'none';
-                birdAudioEl.style.display = 'block';
+                imageMessageEl.textContent = '';
+                if (hasSound) {
+                    birdAudioEl.style.display = 'block';
+                    audioMessageEl.textContent = '';
+                } else {
+                    birdAudioEl.style.display = 'none';
+                    audioMessageEl.textContent = 'No sound available for this bird';
+                }
             } else if (currentMode === 'image') {
-                birdImageEl.style.display = 'block';
+                if (hasImage) {
+                    birdImageEl.style.display = 'block';
+                    imageMessageEl.textContent = '';
+                } else {
+                    birdImageEl.style.display = 'none';
+                    imageMessageEl.textContent = 'No image available for this bird';
+                }
                 birdAudioEl.style.display = 'none';
+                audioMessageEl.textContent = '';
             } else {
-                birdImageEl.style.display = 'block';
-                birdAudioEl.style.display = 'block';
+                if (hasImage) {
+                    birdImageEl.style.display = 'block';
+                    imageMessageEl.textContent = '';
+                } else {
+                    birdImageEl.style.display = 'none';
+                    imageMessageEl.textContent = 'No image available for this bird';
+                }
+                if (hasSound) {
+                    birdAudioEl.style.display = 'block';
+                    audioMessageEl.textContent = '';
+                } else {
+                    birdAudioEl.style.display = 'none';
+                    audioMessageEl.textContent = 'No sound available for this bird';
+                }
             }
         }
     }
@@ -346,17 +433,24 @@ nextBtn.addEventListener('click', nextBird);
 submitGuessBtn.addEventListener('click', submitGuess);
 startQuizBtn.addEventListener('click', startQuiz);
 
-uploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+addBirdBtn.addEventListener('click', async () => {
     const name = document.getElementById('bird-name-input').value;
     const imageFile = document.getElementById('bird-image-input').files[0];
     const soundFile = document.getElementById('bird-sound-input').files[0];
     
-    if (!name || !imageFile || !soundFile) return;
+    if (!name) {
+        alert('Please enter a bird name');
+        return;
+    }
     
-    // Convert files to data URLs
-    const imageData = await fileToDataURL(imageFile);
-    const soundData = await fileToDataURL(soundFile);
+    if (!imageFile && !soundFile) {
+        alert('Please select at least an image or a sound file');
+        return;
+    }
+    
+    // Convert files to data URLs (empty string if no file)
+    const imageData = imageFile ? await fileToDataURL(imageFile) : '';
+    const soundData = soundFile ? await fileToDataURL(soundFile) : '';
     
     const customBird = { name, image: imageData, sound: soundData };
     
@@ -369,7 +463,9 @@ uploadForm.addEventListener('submit', async (e) => {
     updateDisplay();
     
     // Reset form
-    uploadForm.reset();
+    document.getElementById('bird-name-input').value = '';
+    document.getElementById('bird-image-input').value = '';
+    document.getElementById('bird-sound-input').value = '';
 });
 
 function fileToDataURL(file) {
@@ -381,5 +477,127 @@ function fileToDataURL(file) {
     });
 }
 
+function clearCustomBirds() {
+    if (confirm('Are you sure you want to clear all custom birds? This cannot be undone.')) {
+        localStorage.removeItem('customBirds');
+        updateDisplay();
+    }
+}
+
+function printBirds() {
+    console.log('Current birds:', birds);
+    const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
+    console.log('Custom birds in localStorage:', customBirds);
+    console.log('Bird file data:', birdFileData);
+}
+
+// Export bird file - download all birds as a single JSON file
+function exportBirdFile() {
+    const allBirds = [];
+    
+    // Get custom birds from localStorage
+    const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
+    allBirds.push(...customBirds);
+    
+    // Get birds from bird file
+    if (birdFileData && birdFileData.birds) {
+        birdFileData.birds.forEach(bird => {
+            if (!allBirds.find(b => b.name === bird.name)) {
+                allBirds.push(bird);
+            }
+        });
+    }
+    
+    if (allBirds.length === 0) {
+        alert('No birds to export. Add birds or load a bird file first.');
+        return;
+    }
+    
+    const exportData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        birds: allBirds
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bird-file.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Import bird file - upload a JSON file
+async function importBirdFile(file) {
+    clearCustomBirds();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                // Validate file format
+                if (!data.birds || !Array.isArray(data.birds)) {
+                    reject(new Error('Invalid bird file format'));
+                    return;
+                }
+                
+                // Validate each bird has required fields
+                for (const bird of data.birds) {
+                    if (!bird.name && (!bird.image || !bird.sound)) {
+                        reject(new Error('Bird missing required fields (name, image, sound)'));
+                        return;
+                    }
+                }
+                
+                // Set the bird file data
+                setBirdFileData(data);
+                
+                resolve(data);
+            } catch (err) {
+                reject(new Error('Failed to parse bird file: ' + err.message));
+            }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file);
+    });
+}
+
 // Initialize
 updateDisplay();
+
+// Bird file upload/download handlers
+const birdFileInput = document.getElementById('bird-file-input');
+const loadBirdFileBtn = document.getElementById('load-bird-file');
+const downloadBirdFileBtn = document.getElementById('download-bird-file');
+const fileLoadMessage = document.getElementById('file-load-message');
+
+loadBirdFileBtn.addEventListener('click', async () => {
+    const file = birdFileInput.files[0];
+    if (!file) {
+        fileLoadMessage.textContent = 'Please select a file first';
+        fileLoadMessage.style.color = 'orange';
+        return;
+    }
+    
+    try {
+        const data = await importBirdFile(file);
+        fileLoadMessage.textContent = `Loaded ${data.birds.length} birds successfully!`;
+        fileLoadMessage.style.color = 'green';
+        birdFileInput.value = ''; // Reset file input
+    } catch (err) {
+        fileLoadMessage.textContent = err.message;
+        fileLoadMessage.style.color = 'red';
+    }
+});
+
+downloadBirdFileBtn.addEventListener('click', () => {
+    try {
+        exportBirdFile();
+    } catch (err) {
+        alert('Failed to download: ' + err.message);
+    }
+});

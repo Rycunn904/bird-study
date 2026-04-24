@@ -82,3 +82,36 @@ button {
     color: #555;
     text-decoration: none;
 }
+
+#bird-file-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+#bird-file-section h2 {
+    margin-top: 0;
+}
+
+.bird-file-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.file-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.file-option label {
+    font-weight: bold;
+}
+
+#file-load-message {
+    min-height: 1.2em;
+    font-style: italic;
+}

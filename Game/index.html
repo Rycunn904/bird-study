@@ -48,18 +48,34 @@
     </div>
     
     <div id="upload-section">
-        <h2>Upload New Bird</h2>
-        <form id="upload-form">
+        <h2>Add New Bird</h2>
+        <div id="upload-form">
             <label for="bird-name-input">Bird Name:</label>
-            <input type="text" id="bird-name-input" required>
+            <input type="text" id="bird-name-input">
             <br>
             <label for="bird-image-input">Image:</label>
-            <input type="file" id="bird-image-input" accept="image/*" required>
+            <input type="file" id="bird-image-input" accept="image/*">
             <br>
             <label for="bird-sound-input">Sound:</label>
-            <input type="file" id="bird-sound-input" accept="audio/*" required>
-            <button type="submit">Add Bird</button>
-        </form>
+            <input type="file" id="bird-sound-input" accept="audio/*">
+            <button type="button" id="add-bird-btn">Add Bird</button>
+        </div>
+    </div>
+    
+    <div id="bird-file-section">
+        <h2>Bird File</h2>
+        <p>Upload or download a bird file containing all bird data (names, images, and sounds).</p>
+        <div class="bird-file-controls">
+            <div class="file-option">
+                <label for="bird-file-input">Upload Bird File:</label>
+                <input type="file" id="bird-file-input" accept=".json">
+                <button id="load-bird-file">Load</button>
+                <div id="file-load-message"></div>
+            </div>
+            <div class="file-option">
+                <button id="download-bird-file">Download Bird File</button>
+            </div>
+        </div>
     </div>
 
     <!-- Link to License in bottom corner -->
