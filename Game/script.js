@@ -567,6 +567,7 @@ async function importBirdFile(file) {
         };
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsText(file);
+        updateDeleteDropdown();
     });
 }
 
