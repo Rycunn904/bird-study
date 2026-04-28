@@ -17,7 +17,7 @@ function setBirdFileData(data) {
     if (data && data.birds) {
         data.birds.forEach(bird => {
             if (!birds.includes(bird.name)) {
-                customBirds.push(bird.name);
+                birds.push(bird.name);
             }
         });
     }
@@ -28,6 +28,20 @@ function setBirdFileData(data) {
 let currentIndex = 0;
 let currentMode = 'sound';
 let appMode = 'study';
+
+document.addEventListener('keydown', (e) => {
+    if (appMode === 'study') {
+        if (e.key === 'ArrowRight') {
+            nextBird();
+        } else if (e.key === 'ArrowLeft') {
+            prevBird();
+        }
+    } else if (appMode === 'quiz' && quizStarted) {
+        if (e.key === 'Enter') {
+            submitGuess();
+        }
+    }
+});
 
 const modeInputs = document.querySelectorAll('input[name="mode"]');
 const appModeInputs = document.querySelectorAll('input[name="app-mode"]');
@@ -535,7 +549,6 @@ function exportBirdFile() {
 
 // Import bird file - upload a JSON file
 async function importBirdFile(file) {
-    clearCustomBirds();
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -563,6 +576,7 @@ async function importBirdFile(file) {
                 resolve(data);
             } catch (err) {
                 reject(new Error('Failed to parse bird file: ' + err.message));
+                console.log(err);
             }
         };
         reader.onerror = () => reject(new Error('Failed to read file'));
@@ -609,20 +623,22 @@ function updateDeleteDropdown() {
 }
 
 function deleteBird() {
-    const selectedIndex = birdDeleteSelect.value;
-    
-    if (selectedIndex === '') {
+    const selectedIndex = birdDeleteSelect.selectedIndex;
+    if (selectedIndex <= 0) {
         deleteMessage.textContent = 'Please select a bird to delete';
         deleteMessage.style.color = 'orange';
         return;
     }
-    
+
     const customBirds = JSON.parse(localStorage.getItem('customBirds') || '[]');
-    const birdToDelete = customBirds[selectedIndex]["name"];
-    
+    console.log(customBirds);
+    console.log(selectedIndex);
+    console.log(customBirds[selectedIndex - 1]);
+    const birdToDelete = customBirds[selectedIndex - 1].name;
+
     if (confirm(`Are you sure you want to delete "${birdToDelete}"? This cannot be undone.`)) {
         // Remove the bird
-        customBirds.splice(selectedIndex, 1);
+        customBirds.splice(selectedIndex - 1, 1);
         localStorage.setItem('customBirds', JSON.stringify(customBirds));
         
         // Remove from birds array
